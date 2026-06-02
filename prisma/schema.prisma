@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Person {
+  id        String   @id @default(uuid())
+  name      String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  outgoingConnections Connection[] @relation("FromPerson")
+  incomingConnections Connection[] @relation("ToPerson")
+}
+
+model Connection {
+  id           String   @id @default(uuid())
+  label        String
+  fromPersonId String
+  toPersonId   String
+  createdAt    DateTime @default(now())
+  
+  fromPerson Person @relation("FromPerson", fields: [fromPersonId], references: [id], onDelete: Cascade)
+  toPerson   Person @relation("ToPerson", fields: [toPersonId], references: [id], onDelete: Cascade)
+
+  @@unique([fromPersonId, toPersonId, label])
+}

@@ -24,3 +24,28 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ensure text inputs always have visible text regardless of background */
+input[type="text"], select {
+  color: #111827;
+  background-color: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  input[type="text"], select {
+    color: #f9fafb;
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+  
+  /* Update GraphView outer layout if needed */
+  .bg-gray-50 {
+    background-color: #111827;
+    color: #e5e7eb;
+  }
+  
+  .bg-white {
+    background-color: #1f2937;
+    border-color: #374151;
+  }
+}
