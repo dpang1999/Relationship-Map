@@ -49,12 +49,13 @@ export default function GraphView({ data }: { data: any }) {
         }}
         nodeCanvasObject={(node: any, ctx: any, globalScale: number) => {
           const label = node.name;
-          const fontSize = 14 / globalScale;
+          const fontSize = 20 / globalScale;
           ctx.font = `${fontSize}px Sans-Serif`;
           const textWidth = ctx.measureText(label).width;
           const bckgDimensions = [textWidth, fontSize].map(n => n + fontSize * 0.2);
 
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+          //console.log(node);
+          ctx.fillStyle = `${node.color}` || 'rgba(255, 255, 255, 0.8)';
           ctx.fillRect(node.x - bckgDimensions[0] / 2, node.y - bckgDimensions[1] / 2, ...bckgDimensions);
 
           ctx.textAlign = 'center';

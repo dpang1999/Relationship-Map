@@ -14,6 +14,7 @@ export async function POST(req: Request) {
     data: {
       name: body.name,
       notes: body.notes,
+      color: body.color || "#7fa7e4"
     },
   });
   return NextResponse.json(person);

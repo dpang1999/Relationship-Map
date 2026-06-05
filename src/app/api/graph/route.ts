@@ -8,6 +8,7 @@ export async function GET() {
   const nodes = people.map(p => ({
     id: p.id,
     name: p.name,
+    color: p.color,
     val: 1, // Node size
   }));
 

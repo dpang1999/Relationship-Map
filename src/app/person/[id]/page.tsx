@@ -12,6 +12,7 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
 
   const [person, setPerson] = useState<any>(null);
   const [allPeople, setAllPeople] = useState<any[]>([]);
+  const [color, setColor] = useState<string>("#6b7280");
   
   // Connection form state
   const [targetPersonId, setTargetPersonId] = useState("");
@@ -21,6 +22,7 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [editColor, setEditColor] = useState<string>("#6b7280");
 
   const fetchData = async () => {
     const res = await fetch(`/api/people/${id}`);
@@ -29,6 +31,8 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
       setPerson(data);
       setEditName(data.name);
       setEditNotes(data.notes || "");
+      setColor(data.color || "#6b7280");
+      setEditColor(data.color || "#6b7280");
     } else {
       router.push("/");
     }
@@ -77,7 +81,7 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
     await fetch(`/api/people/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editName, notes: editNotes })
+      body: JSON.stringify({ name: editName, notes: editNotes, color: editColor })
     });
     setIsEditing(false);
     fetchData();
@@ -109,7 +113,12 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
-              <h1 className="text-4xl font-bold mb-2 text-white-900">{person.name}</h1>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: person.color || color }} />
+                  <h1 className="text-4xl font-bold mb-2 text-white-900">{person.name}</h1>
+                </div>
+              </div>
               {person.notes && (
                 <p className="text-white-700 text-lg whitespace-pre-wrap">{person.notes}</p>
               )}
@@ -123,12 +132,19 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
                 </button>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Name</label>
                 <input type="text" className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" value={editName} onChange={e => setEditName(e.target.value)} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Notes / Facts</label>
-                <textarea className="w-full px-3 py-2 border rounded-lg min-h-[100px] text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" value={editNotes} onChange={e => setEditNotes(e.target.value)} />
+                <label className="block text-sm font-medium text-gray-400 mb-1">Notes / Facts</label>
+                <textarea className="w-full px-3 py-2 border rounded-lg min-h-[100px] text-gray-300 focus:ring-2 focus:ring-blue-500 outline-none" value={editNotes} onChange={e => setEditNotes(e.target.value)} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Color</label>
+                <div className="flex items-center gap-3">
+                  <input type="color" className="w-12 h-10 p-0 border rounded-md" value={editColor} onChange={e => setEditColor(e.target.value)} />
+                  <div className="text-sm text-gray-500">Selected: <span className="inline-block w-4 h-4 rounded-full align-middle ml-2" style={{ backgroundColor: editColor }} /></div>
+                </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button onClick={() => setIsEditing(false)} className="px-4 py-2 border text-gray-600 rounded-lg hover:bg-gray-50">Cancel</button>
