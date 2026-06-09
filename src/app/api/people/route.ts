@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   const people = await prisma.person.findMany({
-    orderBy: { name: 'asc' }
+    orderBy: { name: 'asc' },
+    include: { tags: true }
   });
   return NextResponse.json(people);
 }
@@ -14,8 +15,15 @@ export async function POST(req: Request) {
     data: {
       name: body.name,
       notes: body.notes,
-      color: body.color || "#7fa7e4"
+      color: body.color || "#7fa7e4",
+      tags: {
+        connectOrCreate: (body.tags || []).map((tag: string) => ({
+          where: { name: tag },
+          create: { name: tag }
+        }))
+      }
     },
+    include: { tags: true }
   });
   return NextResponse.json(person);
 }

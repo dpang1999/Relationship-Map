@@ -11,11 +11,24 @@ export default function Home() {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
 
+  // Search states
+  const [allPeople, setAllPeople] = useState<any[]>([]);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [searchText, setSearchText] = useState("");
+
   const fetchData = async () => {
     try {
-      const res = await fetch("/api/graph");
-      const json = await res.json();
-      setData(json);
+      const [graphRes, peopleRes] = await Promise.all([
+        fetch("/api/graph"),
+        fetch("/api/people")
+      ]);
+      const graphJson = await graphRes.json();
+      const peopleJson = await peopleRes.json();
+      setData(graphJson);
+      setAllPeople(peopleJson);
+      const tags = [...new Set(peopleJson.flatMap((p: any) => p.tags.map((t: any) => t.name)))] as string[];
+      setAllTags(tags.sort());
     } catch (error) {
       console.error("Failed to fetch graph data", error);
     } finally {
@@ -26,6 +39,25 @@ export default function Home() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const filteredPeople = allPeople.filter(person => {
+    const matchesText = person.name.toLowerCase().includes(searchText.toLowerCase());
+    const matchesTags = selectedTags.every(tag => person.tags.some((t: any) => t.name === tag));
+    return matchesText && matchesTags;
+  });
+
+  const filteredIds = new Set(filteredPeople.map((p: any) => p.id));
+
+  const filteredData = {
+    nodes: data.nodes.filter((n: any) => filteredIds.has(n.id)),
+    links: data.links.filter((l: any) => {
+      const sourceId = typeof l.source === 'object' ? l.source.id : l.source;
+      const targetId = typeof l.target === 'object' ? l.target.id : l.target;
+      return filteredIds.has(sourceId) && filteredIds.has(targetId);
+    })
+  };
+
+  
 
   const handleAddPerson = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,11 +104,37 @@ export default function Home() {
         </form>
       </div>
 
+
+      <div className="flex flex-wrap gap-2 mb-4 items-center">
+        <input
+          type="text"
+          placeholder="Search by name..."
+          className="px-3 py-1 rounded border border-gray-300"
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+        />
+        {allTags.map(tag => (
+          <button
+            key={tag}
+            onClick={() => setSelectedTags(prev =>
+              prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+            )}
+            className={`text-xs px-2 py-1 rounded-full border transition ${
+              selectedTags.includes(tag)
+                ? 'bg-green-600 text-white border-green-600'
+                : 'bg-white text-gray-600 border-gray-300 hover:border-green-400'
+            }`}
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
+
       <div className="flex-grow flex items-center justify-center">
         {loading ? (
           <p className="text-gray-500">Loading map...</p>
-        ) : data.nodes.length > 0 ? (
-          <GraphView data={data} />
+        ) : filteredData.nodes.length > 0 ? (
+          <GraphView data={filteredData} />
         ) : (
           <div className="text-center p-12 bg-gray-50 rounded-lg w-full">
             <h2 className="text-xl text-gray-600 mb-2">No people added yet</h2>

@@ -24,6 +24,10 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
   const [editNotes, setEditNotes] = useState("");
   const [editColor, setEditColor] = useState<string>("#6b7280");
 
+  // Edit tags
+  const [editTags, setEditTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
+
   const fetchData = async () => {
     const res = await fetch(`/api/people/${id}`);
     if (res.ok) {
@@ -33,6 +37,7 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
       setEditNotes(data.notes || "");
       setColor(data.color || "#6b7280");
       setEditColor(data.color || "#6b7280");
+      setEditTags(data.tags?.map((t: any) => t.name) || []);
     } else {
       router.push("/");
     }
@@ -81,7 +86,7 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
     await fetch(`/api/people/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: editName, notes: editNotes, color: editColor })
+      body: JSON.stringify({ name: editName, notes: editNotes, color: editColor, tags: editTags })
     });
     setIsEditing(false);
     fetchData();
@@ -122,6 +127,15 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
               {person.notes && (
                 <p className="text-white-700 text-lg whitespace-pre-wrap">{person.notes}</p>
               )}
+              {person.tags?.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {person.tags.map((tag: any) => (
+                    <span key={tag.id} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
             </>
           ) : (
             <div className="space-y-4 pr-8">
@@ -144,6 +158,39 @@ export default function PersonProfile({ params }: { params: Promise<{ id: string
                 <div className="flex items-center gap-3">
                   <input type="color" className="w-12 h-10 p-0 border rounded-md" value={editColor} onChange={e => setEditColor(e.target.value)} />
                   <div className="text-sm text-gray-500">Selected: <span className="inline-block w-4 h-4 rounded-full align-middle ml-2" style={{ backgroundColor: editColor }} /></div>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Tags</label>
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {editTags.map(tag => (
+                    <span key={tag} className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                      {tag}
+                      <button type="button" onClick={() => setEditTags(editTags.filter(t => t !== tag))}>×</button>
+                    </span>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Add tag (e.g. computer science)"
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm"
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const t = tagInput.trim().toLowerCase();
+                        if (t && !editTags.includes(t)) setEditTags([...editTags, t]);
+                        setTagInput("");
+                      }
+                    }}
+                  />
+                  <button type="button" onClick={() => {
+                    const t = tagInput.trim().toLowerCase();
+                    if (t && !editTags.includes(t)) setEditTags([...editTags, t]);
+                    setTagInput("");
+                  }} className="px-3 py-2 border rounded-lg text-gray-400 text-sm hover:bg-gray-50">Add</button>
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">

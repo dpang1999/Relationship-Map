@@ -17,6 +17,13 @@ model Person {
 
   outgoingConnections Connection[] @relation("FromPerson")
   incomingConnections Connection[] @relation("ToPerson")
+  tags                Tag[]        @relation("PersonTags")
+}
+
+model Tag {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  people    Person[]  @relation("PersonTags")
 }
 
 model Connection {

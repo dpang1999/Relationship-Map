@@ -16,7 +16,8 @@ export async function GET(
       },
       incomingConnections: {
         include: { fromPerson: true }
-      }
+      },
+      tags: true
     }
   });
 
@@ -47,6 +48,15 @@ export async function PUT(
   if (typeof body.name === 'string') data.name = body.name;
   if (body.notes !== undefined) data.notes = body.notes;
   if (body.color !== undefined) data.color = body.color;
+  if (body.tags !== undefined) {
+    data.tags = {
+      set: [],  // disconnect all existing tags first
+      connectOrCreate: body.tags.map((tag: string) => ({
+        where: { name: tag },
+        create: { name: tag }
+      }))
+    };
+  }
 
   if (Object.keys(data).length === 0) {
     return new NextResponse('No valid fields to update', { status: 400 });
